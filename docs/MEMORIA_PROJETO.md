@@ -3,7 +3,7 @@
 > Fonte única de verdade sobre escopo, decisões e progresso. Consultar antes de
 > cada tarefa; atualizar após mudanças relevantes. (skill: `concretiza-memoria`)
 
-_Última atualização: 2026-08-06 (prep deploy Railway → VPS)_
+_Última atualização: 2026-08-06 (fix Dockerfile prisma generate / Railway)_
 
 ## Objetivo e problema
 Sistema web para controlar a **fila de produção** e o **pipeline operacional**
@@ -163,3 +163,7 @@ Bloqueios respondem **por que parou** e **de quem depende**, independentes da fa
   `docker-compose.prod.yml`, guia `docs/DEPLOY.md`; agenda Google opcional no 1º ar.
 - 2026-08-06 — `docs/DEPLOY.md` reescrito com passo a passo detalhado (Railway,
   branch `master`, variáveis, Shell/seed, troubleshooting) para deploy por iniciante.
+- 2026-08-06 — Fix build Railway: `Map<string, string>` em `usuario-form` (códigos
+  de permissão vindos do grupo são `string[]`, não `PermissaoCodigo`).
+- 2026-08-06 — Fix Docker build Railway: `ENV DATABASE_URL` placeholder no stage
+  `builder` antes de `prisma generate` (var real só em runtime no serviço app).

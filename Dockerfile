@@ -7,6 +7,9 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# Placeholder só para `prisma generate` no build (Railway não injeta DATABASE_URL no build).
+# Em runtime o runner usa a DATABASE_URL real (migrate + app).
+ENV DATABASE_URL="postgresql://build:build@localhost:5432/build?schema=public"
 RUN npx prisma generate
 RUN npm run build
 
