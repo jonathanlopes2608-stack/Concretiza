@@ -426,13 +426,15 @@ Se aparecer `0.0.0.0` nas URLs, a variável está errada.
 
 ### 8. Seed falha ou “admin não entra”
 
-**Sintomas:** login diz credenciais inválidas após deploy OK.
+**Sintomas:** login diz credenciais inválidas após deploy OK; ou **Entrar “não faz nada”** (volta ao login sem mensagem) mesmo com senha correta e `/api/auth/providers` já em `https://…`.
 
 **O que fazer:**
 
 - Rode de novo no Shell: `npx tsx prisma/seed.ts`
 - Confirme que `ADMIN_EMAIL` e `ADMIN_PASSWORD` nas **Variables** são os que você está digitando (case-sensitive na senha).
 - Se mudou `ADMIN_PASSWORD` **depois** do seed, rode o seed outra vez **ou** altere a senha pela tela Usuários logado como admin (se ainda tiver acesso).
+- Hard refresh (Ctrl+Shift+R). Em DevTools → Network, ao clicar Entrar deve haver **POST** em `/login`. Senha errada mostra “E-mail ou senha inválidos”.
+- Se a senha estiver certa e a tela só “piscar”: confira se o deploy inclui o fix de `secureCookie` no middleware (cookie `__Secure-authjs.session-token`).
 
 ---
 

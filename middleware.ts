@@ -16,9 +16,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Em HTTPS o Auth.js grava `__Secure-authjs.session-token`. Sem secureCookie,
+  // getToken procura `authjs.session-token` e o login “não faz nada” (bounce /login).
+  const secureCookie =
+    request.nextUrl.protocol === "https:" || process.env.NODE_ENV === "production";
   const token = await getToken({
     req: request,
     secret: process.env.AUTH_SECRET,
+    secureCookie,
   });
 
   const isPublic = publicPaths.some((p) => pathname === p || pathname.startsWith(`${p}/`));

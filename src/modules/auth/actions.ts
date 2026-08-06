@@ -62,6 +62,16 @@ export async function loginAction(input: unknown): Promise<ActionResult> {
     if (signInFailed(result)) {
       return { ok: false, error: "Falha ao autenticar" };
     }
+
+    // Garante que o cookie de sessão foi gravado (evita “sucesso” + bounce no middleware).
+    const session = await auth();
+    if (!session?.user?.id) {
+      return {
+        ok: false,
+        error:
+          "Login autenticou, mas a sessão não ficou ativa. Confirme AUTH_SECRET e cookies HTTPS.",
+      };
+    }
     return { ok: true };
   } catch (error) {
     if (error instanceof AuthError) {

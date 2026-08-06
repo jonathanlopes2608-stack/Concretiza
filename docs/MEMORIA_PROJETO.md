@@ -3,7 +3,7 @@
 > Fonte única de verdade sobre escopo, decisões e progresso. Consultar antes de
 > cada tarefa; atualizar após mudanças relevantes. (skill: `concretiza-memoria`)
 
-_Última atualização: 2026-08-06 (fix login Railway AUTH_URL / 0.0.0.0)_
+_Última atualização: 2026-08-06 (fix login Railway: secureCookie no middleware)_
 
 ## Objetivo e problema
 Sistema web para controlar a **fila de produção** e o **pipeline operacional**
@@ -170,3 +170,7 @@ Bloqueios respondem **por que parou** e **de quem depende**, independentes da fa
 - 2026-08-06 — Login Railway “Entrar não faz nada”: Auth.js sem `AUTH_URL` usava
   host `0.0.0.0:8080` (`HOSTNAME` do Dockerfile). Fix: `ensureAuthUrlFromAppUrl`
   (+ feedback de erro no form); documentar `AUTH_URL` = `APP_URL` com `https://`.
+- 2026-08-06 — Mesmo sintoma pós-AUTH_URL: middleware `getToken` sem `secureCookie`
+  lia cookie errado (`authjs…` vs `__Secure-authjs…`); login gravava sessão e a
+  fila bounceava de volta ao `/login`. Fix: `secureCookie` no middleware + check
+  de sessão após `signIn` no `loginAction`.
