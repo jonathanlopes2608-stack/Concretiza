@@ -57,7 +57,7 @@ npm run dev
 
 ## Deploy (validação web)
 
-Guia completo (Railway agora → VPS depois): [`docs/DEPLOY.md`](docs/DEPLOY.md).
+Para colocar o sistema na internet (validadores externos, HTTPS sem domínio próprio), siga o **guia detalhado passo a passo** em [`docs/DEPLOY.md`](docs/DEPLOY.md): conta Railway, branch `master` no GitHub, PostgreSQL, variáveis de ambiente, domínio `*.up.railway.app`, seed e criação de usuários. Comece pela **Parte A — Railway**; a Parte B cobre VPS depois do MVP.
 
 Resumo rápido em VPS:
 

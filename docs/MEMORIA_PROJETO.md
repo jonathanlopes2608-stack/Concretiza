@@ -161,3 +161,5 @@ Bloqueios respondem **por que parou** e **de quem depende**, independentes da fa
   agrupados por dia a partir de `HistoricoProposta`; botão ao lado do nome.
 - 2026-08-06 — Deploy validação: Railway (agora) → VPS Docker (depois);
   `docker-compose.prod.yml`, guia `docs/DEPLOY.md`; agenda Google opcional no 1º ar.
+- 2026-08-06 — `docs/DEPLOY.md` reescrito com passo a passo detalhado (Railway,
+  branch `master`, variáveis, Shell/seed, troubleshooting) para deploy por iniciante.
