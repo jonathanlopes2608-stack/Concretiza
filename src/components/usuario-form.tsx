@@ -45,7 +45,9 @@ export function UsuarioForm({ mode, grupos, initial }: Props) {
   );
   const labelsPerm = useMemo(() => {
     if (!grupoSel?.permissoes?.length) return [];
-    const map = new Map(CATALOGO_PERMISSOES.map((p) => [p.codigo, p.label]));
+    const map = new Map<string, string>(
+      CATALOGO_PERMISSOES.map((p) => [p.codigo, p.label]),
+    );
     return grupoSel.permissoes.map((c) => map.get(c) ?? c);
   }, [grupoSel]);
 
