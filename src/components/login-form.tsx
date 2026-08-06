@@ -17,21 +17,26 @@ export function LoginForm() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    const result = await loginAction({ email, password });
-    setLoading(false);
+    try {
+      const result = await loginAction({ email, password });
 
-    if (result.ok) {
-      router.push("/fila");
-      router.refresh();
-      return;
+      if (result.ok) {
+        router.push("/fila");
+        router.refresh();
+        return;
+      }
+
+      if (result.needs2fa) {
+        router.push("/login/2fa");
+        return;
+      }
+
+      setError(result.error);
+    } catch {
+      setError("Não foi possível conectar ao servidor. Tente novamente.");
+    } finally {
+      setLoading(false);
     }
-
-    if (result.needs2fa) {
-      router.push("/login/2fa");
-      return;
-    }
-
-    setError(result.error);
   }
 
   return (

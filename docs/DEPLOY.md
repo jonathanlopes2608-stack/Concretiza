@@ -186,10 +186,13 @@ Você precisa que a **aplicação** use a URL de conexão do banco. Há duas for
    | Variável | Valor (exemplo — use a **sua** URL) |
    |----------|-------------------------------------|
    | `APP_URL` | `https://concretiza-production-xxxx.up.railway.app` |
+   | `AUTH_URL` | `https://concretiza-production-xxxx.up.railway.app` |
 
-6. **Redeploy** após alterar `APP_URL` (Deploy → **Redeploy** ou push no GitHub).
+   **Obrigatório:** incluir o prefixo `https://`. Valor só com o hostname (ex.: `concretiza-production.up.railway.app`) **quebra o Auth.js**.
 
-**Por quê:** login, cookies e links internos dependem de `APP_URL` correto. URL errada causa loop de login ou redirect quebrado.
+6. **Redeploy** após alterar `APP_URL` / `AUTH_URL` (Deploy → **Redeploy** ou push no GitHub).
+
+**Por quê:** o container escuta em `HOSTNAME=0.0.0.0`. Sem `AUTH_URL` (ou `APP_URL` válido com `https://`, que o app usa como fallback), o Auth.js monta callbacks em `https://0.0.0.0:8080/...` — o botão Entrar parece não fazer nada.
 
 ---
 
@@ -202,7 +205,8 @@ No serviço da **app** → **Variables**, configure **todas** abaixo. Exemplos s
 | `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` | Sim | Ver passo A.6 |
 | `AUTH_SECRET` | `a1b2c3d4e5f6...` (64 chars hex) | Sim | Gerado no PowerShell (início deste guia) |
 | `AUTH_TRUST_HOST` | `true` | Sim | Necessário atrás do proxy HTTPS do Railway |
-| `APP_URL` | `https://concretiza-production-xxxx.up.railway.app` | Sim | Sem `/` no final; passo A.7 |
+| `APP_URL` | `https://concretiza-production-xxxx.up.railway.app` | Sim | **Com `https://`**, sem `/` no final; passo A.7 |
+| `AUTH_URL` | mesmo valor de `APP_URL` | Sim (Railway) | Auth.js; sem isso callbacks viram `https://0.0.0.0:PORT` e o login “não faz nada” |
 | `ADMIN_EMAIL` | `seu.nome@gmail.com` | Sim | E-mail **seu** (admin principal) |
 | `ADMIN_PASSWORD` | `MinhaSenh@Forte2026!` | Sim | **Forte**; nunca `Admin@123` na web |
 | `UPLOAD_DIR` | `/app/uploads` | Sim | Caminho dentro do container |
@@ -362,31 +366,53 @@ O app grava arquivos em `/app/uploads` **dentro** do container. Sem volume persi
 
 ---
 
-### 4. Loop de login (entra e volta para login)
+### 4. Clica em Entrar e “nada acontece”
+
+**Sintomas:** tela de login abre; ao enviar, fica em “Entrando…” ou volta sem mensagem / sem ir para a fila.
+
+**Causa mais comum no Railway:** `APP_URL` / `AUTH_URL` sem `https://`, ou `AUTH_URL` ausente → Auth.js usa host interno `0.0.0.0:8080`.
+
+**Confirme em 30 segundos:** abra no navegador  
+`https://SEU-SERVICO.up.railway.app/api/auth/providers`  
+Se aparecer `0.0.0.0` nas URLs, a variável está errada.
+
+**O que fazer:**
+
+1. Variables → `APP_URL` = `https://…up.railway.app` (com `https://`, sem `/` final).
+2. Variables → `AUTH_URL` = **mesmo valor** de `APP_URL`.
+3. `AUTH_TRUST_HOST` = `true` e `AUTH_SECRET` definido.
+4. **Redeploy**.
+5. No Shell, se ainda não rodou: `npx tsx prisma/seed.ts` (sem seed, o form deve mostrar “E-mail ou senha inválidos”).
+6. DevTools → Network: POST da server action / `callback/credentials` não deve redirecionar para `0.0.0.0`.
+
+---
+
+### 5. Loop de login (entra e volta para login)
 
 **Sintomas:** credenciais parecem certas, mas não mantém sessão.
 
 **O que fazer:**
 
-- `APP_URL` deve ser **exatamente** a URL HTTPS pública (passo A.7), **sem** barra final.
+- `APP_URL` e `AUTH_URL` devem ser **exatamente** a URL HTTPS pública (passo A.7), **sem** barra final.
 - `AUTH_TRUST_HOST` = `true`.
 - `AUTH_SECRET` definido e **não mudou** depois que usuários já logaram (mudar invalida sessões — ok no setup inicial).
 - Limpe cookies do site no navegador e tente de novo.
 
 ---
 
-### 5. `APP_URL` errado ou ainda `localhost`
+### 6. `APP_URL` errado ou ainda `localhost`
 
-**Sintomas:** redirects vão para `localhost:3047` ou URL antiga.
+**Sintomas:** redirects vão para `localhost:3047`, URL antiga, ou `https://0.0.0.0:…`.
 
 **O que fazer:**
 
-- Variables → corrija `APP_URL` → **Redeploy** obrigatório.
+- Variables → corrija `APP_URL` **e** `AUTH_URL` (ambos com `https://`) → **Redeploy** obrigatório.
 - Não use `http://` se o Railway só expõe `https://`.
+- Não cole só o hostname sem esquema.
 
 ---
 
-### 6. Branch `main` vazia ou deploy sem código novo
+### 7. Branch `main` vazia ou deploy sem código novo
 
 **Sintomas:** build rápido demais, app antigo, ou “repo empty”.
 
@@ -398,7 +424,7 @@ O app grava arquivos em `/app/uploads` **dentro** do container. Sem volume persi
 
 ---
 
-### 7. Seed falha ou “admin não entra”
+### 8. Seed falha ou “admin não entra”
 
 **Sintomas:** login diz credenciais inválidas após deploy OK.
 
@@ -410,7 +436,7 @@ O app grava arquivos em `/app/uploads` **dentro** do container. Sem volume persi
 
 ---
 
-### 8. Shell / one-off indisponível
+### 9. Shell / one-off indisponível
 
 **Sintomas:** não acha aba Shell.
 

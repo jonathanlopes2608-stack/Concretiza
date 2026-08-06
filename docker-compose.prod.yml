@@ -39,6 +39,7 @@ services:
       AUTH_SECRET: ${AUTH_SECRET:?Defina AUTH_SECRET no .env}
       AUTH_TRUST_HOST: "true"
       APP_URL: ${APP_URL:?Defina APP_URL no .env (https://...)}
+      AUTH_URL: ${AUTH_URL:-${APP_URL}}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@concretiza.local}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Defina ADMIN_PASSWORD forte no .env}
       UPLOAD_DIR: /app/uploads

@@ -3,7 +3,7 @@
 > Fonte única de verdade sobre escopo, decisões e progresso. Consultar antes de
 > cada tarefa; atualizar após mudanças relevantes. (skill: `concretiza-memoria`)
 
-_Última atualização: 2026-08-06 (fix Dockerfile prisma generate / Railway)_
+_Última atualização: 2026-08-06 (fix login Railway AUTH_URL / 0.0.0.0)_
 
 ## Objetivo e problema
 Sistema web para controlar a **fila de produção** e o **pipeline operacional**
@@ -167,3 +167,6 @@ Bloqueios respondem **por que parou** e **de quem depende**, independentes da fa
   de permissão vindos do grupo são `string[]`, não `PermissaoCodigo`).
 - 2026-08-06 — Fix Docker build Railway: `ENV DATABASE_URL` placeholder no stage
   `builder` antes de `prisma generate` (var real só em runtime no serviço app).
+- 2026-08-06 — Login Railway “Entrar não faz nada”: Auth.js sem `AUTH_URL` usava
+  host `0.0.0.0:8080` (`HOSTNAME` do Dockerfile). Fix: `ensureAuthUrlFromAppUrl`
+  (+ feedback de erro no form); documentar `AUTH_URL` = `APP_URL` com `https://`.

@@ -3,6 +3,7 @@ import Credentials from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
 import { authenticator } from "otplib";
 import type { Role } from "@prisma/client";
+import { ensureAuthUrlFromAppUrl } from "@/src/lib/auth-url";
 import { prisma } from "@/src/lib/db";
 import { nomeCompleto } from "@/src/lib/grupos";
 import {
@@ -11,6 +12,8 @@ import {
   type PermissaoCodigo,
 } from "@/src/lib/permissoes";
 import { verifyPending2faToken } from "@/src/lib/two-factor";
+
+ensureAuthUrlFromAppUrl();
 
 declare module "next-auth" {
   interface User {

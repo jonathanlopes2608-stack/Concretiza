@@ -14,43 +14,52 @@ import { enable2faSchema, loginSchema, totpSchema } from "@/src/modules/auth/sch
 
 export type ActionResult = { ok: true } | { ok: false; error: string; needs2fa?: boolean };
 
+function signInFailed(result: unknown): boolean {
+  if (!result) return false;
+  if (typeof result === "string") return /[?&]error=/.test(result);
+  if (typeof result === "object" && "error" in result && (result as { error?: unknown }).error) {
+    return true;
+  }
+  return false;
+}
+
 export async function loginAction(input: unknown): Promise<ActionResult> {
-  const parsed = loginSchema.safeParse(input);
-  if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos" };
-  }
-
-  const email = parsed.data.email.toLowerCase().trim();
-  const user = await prisma.usuario.findUnique({ where: { email } });
-  if (!user || !user.ativo) {
-    return { ok: false, error: "E-mail ou senha inválidos" };
-  }
-
-  const passwordOk = await compare(parsed.data.password, user.senhaHash);
-  if (!passwordOk) {
-    return { ok: false, error: "E-mail ou senha inválidos" };
-  }
-
-  if (user.twoFactorEnabled) {
-    const token = await createPending2faToken(user.id);
-    const jar = await cookies();
-    jar.set(getPending2faCookieName(), token, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 60 * 10,
-    });
-    return { ok: false, error: "2FA necessário", needs2fa: true };
-  }
-
   try {
+    const parsed = loginSchema.safeParse(input);
+    if (!parsed.success) {
+      return { ok: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos" };
+    }
+
+    const email = parsed.data.email.toLowerCase().trim();
+    const user = await prisma.usuario.findUnique({ where: { email } });
+    if (!user || !user.ativo) {
+      return { ok: false, error: "E-mail ou senha inválidos" };
+    }
+
+    const passwordOk = await compare(parsed.data.password, user.senhaHash);
+    if (!passwordOk) {
+      return { ok: false, error: "E-mail ou senha inválidos" };
+    }
+
+    if (user.twoFactorEnabled) {
+      const token = await createPending2faToken(user.id);
+      const jar = await cookies();
+      jar.set(getPending2faCookieName(), token, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: 60 * 10,
+      });
+      return { ok: false, error: "2FA necessário", needs2fa: true };
+    }
+
     const result = await signIn("credentials", {
       email,
       password: parsed.data.password,
       redirect: false,
     });
-    if (result && typeof result === "object" && "error" in result && result.error) {
+    if (signInFailed(result)) {
       return { ok: false, error: "Falha ao autenticar" };
     }
     return { ok: true };
@@ -58,7 +67,12 @@ export async function loginAction(input: unknown): Promise<ActionResult> {
     if (error instanceof AuthError) {
       return { ok: false, error: "Falha ao autenticar" };
     }
-    throw error;
+    console.error("[loginAction]", error);
+    return {
+      ok: false,
+      error:
+        "Não foi possível concluir o login. Verifique APP_URL/AUTH_URL (https://…) e tente de novo.",
+    };
   }
 }
 
@@ -80,7 +94,7 @@ export async function verify2faAction(input: unknown): Promise<ActionResult> {
       totp: parsed.data.totp,
       redirect: false,
     });
-    if (result && typeof result === "object" && "error" in result && result.error) {
+    if (signInFailed(result)) {
       return { ok: false, error: "Código 2FA inválido" };
     }
     jar.delete(getPending2faCookieName());
@@ -89,7 +103,8 @@ export async function verify2faAction(input: unknown): Promise<ActionResult> {
     if (error instanceof AuthError) {
       return { ok: false, error: "Código 2FA inválido" };
     }
-    throw error;
+    console.error("[verify2faAction]", error);
+    return { ok: false, error: "Não foi possível validar o 2FA. Tente novamente." };
   }
 }
 
