@@ -1,0 +1,58 @@
+# Produção / VPS — não publica o Postgres na internet.
+# Uso:
+#   1. Copie .env.example → .env e preencha AUTH_SECRET, APP_URL, POSTGRES_*, ADMIN_*
+#   2. docker compose -f docker-compose.prod.yml up -d --build
+#   3. docker compose -f docker-compose.prod.yml exec app npx tsx prisma/seed.ts
+#   4. (opcional) docker compose -f docker-compose.prod.yml exec app node scripts/seed-demo-dados.mjs
+#
+# Requer variáveis: AUTH_SECRET, APP_URL, POSTGRES_USER, POSTGRES_PASSWORD
+# (Compose falha de propósito se faltarem — não use defaults fracos em produção.)
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?Defina POSTGRES_USER no .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no .env}
+      POSTGRES_DB: ${POSTGRES_DB:-concretiza}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-3047}:3000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-concretiza}?schema=public
+      AUTH_SECRET: ${AUTH_SECRET:?Defina AUTH_SECRET no .env}
+      AUTH_TRUST_HOST: "true"
+      APP_URL: ${APP_URL:?Defina APP_URL no .env (https://...)}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@concretiza.local}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Defina ADMIN_PASSWORD forte no .env}
+      UPLOAD_DIR: /app/uploads
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-}
+      TOKEN_ENCRYPTION_KEY: ${TOKEN_ENCRYPTION_KEY:-}
+      TZ_AGENDA: ${TZ_AGENDA:-America/Sao_Paulo}
+    volumes:
+      - uploads_data:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  uploads_data:

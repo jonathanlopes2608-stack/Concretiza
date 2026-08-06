@@ -1,36 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Concretiza — Fila de Conformidade
 
-## Getting Started
+Sistema web de fila de produção de conformidade (correspondente / agente Caixa).
 
-First, run the development server:
+## Stack
+
+- Next.js (App Router) + TypeScript + Tailwind
+- PostgreSQL + Prisma
+- Auth.js (e-mail/senha + 2FA TOTP)
+- Docker Compose (app + banco)
+
+## Endereço local (portas dedicadas)
+
+| Serviço | Endereço | Motivo |
+|---------|----------|--------|
+| App | **http://localhost:3047** | Evita conflito com outros Next.js na `:3000` |
+| Postgres | `localhost:5437` | Evita conflito com outros Postgres na `:5432` |
+
+## Setup rápido (Windows)
+
+Dê dois cliques em `inicia.bat` (ou rode no terminal). Ele sobe o banco, aplica migrate/seed e abre o navegador.
+
+Para **parar e subir de novo** após mudanças: use `reinicia.bat`.
+
+**Padrão do agente**: após alterações de código/UI/config, reiniciar sempre (ver `.cursor/rules/reinicio-obrigatorio.mdc`). Não depender só do hot reload.
+
+Login seed: `admin@concretiza.local` / `Admin@123`. Ative o 2FA em **Segurança** após o primeiro login.
+
+### Agenda + Google Calendar
+Copie as variáveis `GOOGLE_*` e `TOKEN_ENCRYPTION_KEY` de `.env.example` para o `.env`.
+No Google Cloud Console, crie um OAuth Client (Web) com redirect
+`http://localhost:3047/api/agenda/google/callback`. Em **Agenda**, cada usuário
+conecta a própria conta Gmail e pode compartilhar a visibilidade no Concretiza.
+
+## Setup manual
+
+1. Copie `.env.example` para `.env` e ajuste `AUTH_SECRET` (e opcionalmente `ADMIN_EMAIL` / `ADMIN_PASSWORD`).
+2. Suba o Postgres:
+
+```bash
+docker compose up -d db
+```
+
+3. Aplique migrations e seed:
+
+```bash
+npm install
+npx prisma migrate deploy
+npm run db:seed
+```
+
+4. Rode o app:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Deploy (validação web)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Guia completo (Railway agora → VPS depois): [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Resumo rápido em VPS:
 
-## Learn More
+```bash
+docker compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yml exec app npx tsx prisma/seed.ts
+```
 
-To learn more about Next.js, take a look at the following resources:
+Local com Compose (dev):
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+docker compose up -d --build
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+O container da app aplica `prisma migrate deploy` na subida. Seed admin/demo é **manual** (ver `DEPLOY.md`).
 
-## Deploy on Vercel
+## Estrutura
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `app/` — rotas e páginas
+- `src/modules/` — domínio (auth, propostas, fila)
+- `src/lib/` — db, auth, rbac, SLA, engine de conformidade (stub)
+- `prisma/` — schema, migrations, seed
+- `docs/MEMORIA_PROJETO.md` — memória viva do projeto

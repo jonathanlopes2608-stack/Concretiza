@@ -1,0 +1,163 @@
+# Memória do Projeto — Concretiza (Fila de Conformidade)
+
+> Fonte única de verdade sobre escopo, decisões e progresso. Consultar antes de
+> cada tarefa; atualizar após mudanças relevantes. (skill: `concretiza-memoria`)
+
+_Última atualização: 2026-08-06 (prep deploy Railway → VPS)_
+
+## Objetivo e problema
+Sistema web para controlar a **fila de produção** e o **pipeline operacional**
+de financiamento imobiliário (**correspondente / agente Caixa**). Centraliza
+fases do processo (análise, engenharia, conformidade, cartório…), bloqueios
+(“de quem depende / o que falta”), priorização, distribuição entre analistas,
+SLA e produtividade. Substitui o processo atual em **planilha, e-mail e
+sistema Caixa**. MVP ampliado para a **Concretiza**.
+
+## Usuários e papéis (RBAC)
+- `ADMIN` — configuração, usuários, branding, tipos de dependência.
+- `COORDENADOR` — distribui a fila, dashboards, reatribuição, SLA, força avanço.
+- `ANALISTA` — trabalha suas propostas, checklist, bloqueios, agenda.
+- `VISUALIZACAO` — somente leitura.
+
+## Escopo do MVP
+- Entrada de propostas: **manual + importação Excel** (API de parceiro prevista).
+- Pipeline com **fases operacionais** (planilha + POP CCA).
+- **Bloqueios** tipados por dependência (Cliente, Despachante, EN QA, Engenharia,
+  Banco/Agência, Cartório + CRUD de novos tipos).
+- Fila com fase, “parado em”, analista, despachante, SLA.
+- Checklist documental (fase Conformidade) + anexos + OCR validade/CPF.
+- **Dashboard** de produtividade (funil, aging, travados, por analista).
+- Histórico / auditoria por proposta.
+- **Agenda** (`/agenda`): compromissos + **Google Calendar** (OAuth por usuário,
+  Gmail pessoal no MVP), sync bidirecional, compartilhamento de visibilidade
+  só no Concretiza.
+- Login + papéis (RBAC) + **2FA TOTP**.
+
+### Fases do processo
+`ENTRADA → ANALISE → (RESTRICAO) → ENGENHARIA → (DEBITO_FGTS) → CONFORMIDADE → DECISAO → EM_CARTORIO / FORMALIZACAO → FINALIZADO`
+(+ `CANCELADO` / `REPROVADA`). Toda transição gera histórico.
+
+Bloqueios respondem **por que parou** e **de quem depende**, independentes da fase.
+
+## Fora de escopo (perguntar antes de implementar)
+- Contas Google Workspace corporativas / agendas compartilhadas da empresa
+  (hoje cada usuário conecta a própria conta Gmail).
+- Multi-tenant (várias empresas na mesma instância) — hoje só Concretiza, com
+  **branding parametrizável**.
+- Assinatura digital.
+- Integração direta com sistemas da Caixa (SIOPI / Isolve / Caixa Aqui).
+- Login para despachante/cliente (dependências são externas no MVP).
+
+## Decisões de arquitetura
+- **Stack**: Next.js (App Router) + TypeScript + React + Tailwind.
+- **Banco**: PostgreSQL + Prisma 6.
+- **Auth**: Auth.js (NextAuth v5) — e-mail/senha + **2FA TOTP**; sessão JWT; RBAC no servidor.
+- **Agenda Google**: OAuth separado do login; tokens em `GoogleConta` (criptografados);
+  sync pull (syncToken) + push em CRUD; webhook opcional se `APP_URL` HTTPS.
+- **Arquivos**: disco local (`uploads/`, volume Docker); sem S3 no MVP.
+- **IA conformidade**: interface `ConformidadeEngine` + stub/OCR em `src/lib/conformidade-engine.ts`.
+- **Deploy**: **Railway** para validação externa do MVP (HTTPS sem domínio);
+  destino pós-MVP = **VPS** com Docker (`docker-compose.prod.yml`). Guia:
+  `docs/DEPLOY.md`.
+- **Branding**: parametrizável via `src/config/branding.ts` + CSS variables.
+- Pipeline: `src/modules/pipeline`, bloqueios: `src/modules/bloqueios`, dashboard: `src/modules/dashboard`, agenda: `src/modules/agenda`.
+
+## Progresso
+- [x] Escopo inicial + skills + bootstrap + auth/2FA.
+- [x] CRUD propostas + import Excel + checklist + OCR validade/CPF.
+- [x] **Pipeline `FaseProcesso`** + migração de `StatusProposta` + SLA por fase.
+- [x] Transição de fase (RBAC) + atribuição de analista.
+- [x] **Bloqueios** + tipos de dependência configuráveis + link checklist→bloqueio.
+- [x] Fila com “Parado em” + filtros (fase, dependência, travados, SLA).
+- [x] **Dashboard** de produtividade + export CSV da fila.
+- [x] Campos `numeroProcessoInterno` + `despachanteNome`.
+- [x] Manual operacional Word (`docs/MANUAL_OPERACIONAL.docx`) + prints em `docs/manual/`.
+- [x] **Gestão de usuários** (ADMIN): e-mail, nome, sobrenome, grupo; tela `/usuarios`.
+- [x] **Gestão de grupos** (ADMIN): CRUD em `/usuarios/grupos`; perfil de acesso (RBAC) por grupo.
+- [x] Permissões granulares (telas/ações) por checkbox no grupo; menu e sessão usam `permissoes`.
+- [x] **Agenda UI** + Google Calendar (OAuth pessoal, sync bidirecional, compartilhamento).
+- [x] **Linha do tempo** visual no detalhe do processo (botão ao lado do nome; dados do histórico).
+- [x] Prep **deploy web**: `docker-compose.prod.yml`, seed no container (`tsx`+`prisma` em deps),
+  `docs/DEPLOY.md` (Railway agora → VPS depois).
+- [ ] Importação direta da planilha CONTROLE ORÇA (opcional).
+- [ ] Deploy efetivo no Railway + contas dos validadores (operacional).
+
+## Documentação operacional
+- Manual (analistas/coordenadores): [`docs/MANUAL_OPERACIONAL.docx`](MANUAL_OPERACIONAL.docx)
+- Prints das telas: `docs/manual/`
+- Regenerar Word: `python scripts/gerar-manual-operacional.py`
+
+## Acesso local
+- App: **http://localhost:3047**
+- Postgres host: **localhost:5437** (Docker ou Postgres embutido em `.data/pg-5437`)
+- Atalhos: `inicia.bat` / `reinicia.bat`
+- Login seed: `admin@concretiza.local` / `Admin@123`
+- **Dados demo** (dashboard/apresentação): `npm run db:seed-demo`
+  — 20 propostas/clientes (`DEMO/001`…), 15 ativos em fases distintas,
+  bloqueios em CLIENTE/DESPACHANTE/ANALISTA/ENGENHARIA/BANCO_AGENCIA/CARTORIO,
+  3 analistas + coordenador (`*@concretiza.local` / `Admin@123`). Idempotente.
+
+## Diretrizes operacionais
+- **Reinício obrigatório (padrão)**: após mudanças em código/config que afetem o
+  app (incluindo telas/rotas novas), **parar e subir de novo** — não confiar só
+  no hot reload. A tarefa só termina com o sistema rodando.
+  - Rule: `.cursor/rules/reinicio-obrigatorio.mdc` (`alwaysApply`)
+  - Skill: `concretiza-arquitetura` (seção Execução local)
+  - Atalhos: `reinicia.bat` / `inicia.bat`
+- Sem Docker: o `inicia.bat` sobe `scripts/start-embedded-db.mjs` na porta 5437.
+
+## Próximos passos
+1. Seguir `docs/DEPLOY.md`: push GitHub → Railway + Postgres + seed + usuários externos.
+2. Webhook Google Push em produção (HTTPS) + registro de channel (quando ligar agenda).
+3. Import opcional da planilha de controle ORÇA/engenharia.
+4. Gates mais finos por fase e papéis de visualização EN QA.
+
+## Log de decisões
+- 2026-07-24 — Agenda é módulo interno (sem integração externa).
+- 2026-07-24 — Stack: Next.js + TS + PostgreSQL + Prisma, Docker na VPS.
+- 2026-07-24 — Single-tenant com branding parametrizável.
+- 2026-07-24 — Skills e memória do projeto criadas em `.cursor/skills/` e `docs/`.
+- 2026-07-24 — Auth: e-mail/senha + 2FA TOTP (Auth.js).
+- 2026-07-24 — Checklist fixo via seed; anexos + schema de validação automática.
+- 2026-07-24 — SLA por horas de etapa → prazo absoluto (data/hora).
+- 2026-07-24 — Bootstrap + schema + auth + login/fila implementados; build OK.
+- 2026-07-24 — Portas dedicadas: app **3047**, Postgres host **5437**; criado `inicia.bat`.
+- 2026-07-24 — Diretriz: mudanças que param o sistema devem ser seguidas de
+  religada imediata (`reinicia.bat` criado).
+- 2026-07-24 — CRUD proposta (manual) + import Excel; checklist e SLA na criação.
+- 2026-07-24 — Diretriz de reinício reforçada: rule alwaysApply
+  `.cursor/rules/reinicio-obrigatorio.mdc` + skill arquitetura + memória.
+- 2026-07-24 — Checklist UI + upload local; regra VALIDADE_IDENTIDADE (PDF texto
+  ou data informada pelo analista).
+- 2026-07-24 — `ChecklistResposta.validadeInformada` persistida (não some ao
+  sair da tela); botão "Salvar validade".
+- 2026-07-24 — Camada 1 OCR: Tesseract.js (pt) em imagens JPG/PNG/WEBP para
+  extrair validade em prints/scanners.
+- 2026-07-24 — Heurística CNH: distinguir 4a EMISSÃO vs 4b VALIDADE; OCR antes
+  de validade antiga gravada (evita reaproveitar emissão errada).
+- 2026-07-24 — Validação APROVADO → item OK (bloqueado); REPROVADO → item
+  REPROVADO; sincroniza mensagem; só admin/coordenador reabre.
+- 2026-07-24 — Auditoria CPF: OCR/PDF extrai CPF (campo 4d CNH) e compara com
+  `compradorCpf` (ou CPF do vendedor se 11 dígitos); regra `CPF_DOCUMENTO`
+  junto com validade; divergência → REPROVADO.
+- 2026-08-01 — Escopo ampliado: pipeline operacional completo (não só
+  conformidade documental). `StatusProposta` substituído por `FaseProcesso`.
+- 2026-08-01 — Bloqueios com `TipoDependencia` configurável; dashboard de
+  produtividade; campos processo interno + despachante.
+- 2026-08-01 — Manual operacional em Word (`docs/MANUAL_OPERACIONAL.docx`) com
+  mapeamento Excel/POP e prints reais das telas.
+- 2026-08-04 — Seed demo (`scripts/seed-demo-dados.mjs` / `npm run db:seed-demo`)
+  para compor dashboard: 20 clientes, 15 processos ativos, dependências variadas.
+- 2026-08-04 — Fila: ordenação asc/desc por coluna via query (`ordenar` + `dir`).
+- 2026-08-04 — Gestão de usuários: `sobrenome` + CRUD ADMIN; grupos = Role com
+  descrição de acessos (`src/lib/grupos.ts`); rotas `/usuarios`.
+- 2026-08-04 — `GrupoUsuario` gerenciável (`/usuarios/grupos`); usuário aponta
+  para grupo; `role` sincronizado do perfil do grupo (RBAC).
+- 2026-08-04 — Permissões por checkbox (telas + ações) em `GrupoUsuario.permissoes`;
+  role derivado; sessão/nav filtram por permissão.
+- 2026-08-04 — Agenda + Google Calendar: OAuth pessoal, sync bidirecional,
+  `AgendaCompartilhamento` (visibilidade só no Concretiza).
+- 2026-08-06 — Linha do tempo visual no detalhe (`LinhaDoTempoTrigger`): eventos
+  agrupados por dia a partir de `HistoricoProposta`; botão ao lado do nome.
+- 2026-08-06 — Deploy validação: Railway (agora) → VPS Docker (depois);
+  `docker-compose.prod.yml`, guia `docs/DEPLOY.md`; agenda Google opcional no 1º ar.

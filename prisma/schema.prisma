@@ -1,0 +1,366 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  COORDENADOR
+  ANALISTA
+  VISUALIZACAO
+}
+
+enum FaseProcesso {
+  ENTRADA
+  ANALISE
+  RESTRICAO
+  ENGENHARIA
+  DEBITO_FGTS
+  CONFORMIDADE
+  DECISAO
+  EM_CARTORIO
+  FORMALIZACAO
+  FINALIZADO
+  CANCELADO
+  REPROVADA
+}
+
+enum OrigemProposta {
+  MANUAL
+  EXCEL
+  API
+}
+
+enum Prioridade {
+  BAIXA
+  NORMAL
+  ALTA
+  URGENTE
+}
+
+enum Modalidade {
+  SBPE
+  FGTS
+  PRO_COTISTA
+  OUTRO
+}
+
+enum ChecklistGrupo {
+  COMPRADOR
+  VENDEDOR
+  IMOVEL
+}
+
+enum ChecklistStatus {
+  PENDENTE
+  OK
+  REPROVADO
+}
+
+enum ValidacaoStatus {
+  PENDENTE
+  APROVADO
+  REPROVADO
+  ERRO
+}
+
+enum CompromissoTipo {
+  ASSINATURA
+  RETORNO_PENDENCIA
+  PRAZO
+  OUTRO
+}
+
+enum CompromissoOrigem {
+  CONCRETIZA
+  GOOGLE
+}
+
+enum AgendaCompartilhamentoNivel {
+  LEITURA
+}
+
+enum BloqueioStatus {
+  ABERTO
+  RESOLVIDO
+}
+
+enum BloqueioOrigem {
+  MANUAL
+  CHECKLIST
+  SISTEMA
+}
+
+model Usuario {
+  id               String   @id @default(cuid())
+  nome             String
+  sobrenome        String   @default("")
+  email            String   @unique
+  senhaHash        String
+  role             Role     @default(ANALISTA)
+  grupoId          String?
+  grupo            GrupoUsuario? @relation(fields: [grupoId], references: [id])
+  ativo            Boolean  @default(true)
+  twoFactorEnabled Boolean  @default(false)
+  twoFactorSecret  String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  propostasAnalista   Proposta[]          @relation("AnalistaPropostas")
+  historicos          HistoricoProposta[]
+  compromissos        Compromisso[]
+  bloqueiosAbertos    BloqueioProcesso[]  @relation("BloqueioAbertoPor")
+  bloqueiosResolvidos BloqueioProcesso[]  @relation("BloqueioResolvidoPor")
+  googleConta         GoogleConta?
+  agendasQuePossuo    AgendaCompartilhamento[] @relation("AgendaDono")
+  agendasQueVejo      AgendaCompartilhamento[] @relation("AgendaViewer")
+
+  @@index([grupoId])
+}
+
+model GrupoUsuario {
+  id          String   @id @default(cuid())
+  codigo      String   @unique
+  nome        String
+  descricao   String   @default("")
+  /** Perfil de acesso legado (sincronizado a partir de permissoes). */
+  role        Role
+  /** Códigos de permissão (telas e ações). */
+  permissoes  String[] @default([])
+  ativo       Boolean  @default(true)
+  sistema     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  usuarios Usuario[]
+  agendaCompartilhamentos AgendaCompartilhamento[]
+}
+
+model Proposta {
+  id                    String         @id @default(cuid())
+  numeroPropostaCaixa   String?        @unique
+  numeroProcessoInterno String?        @unique
+  despachanteNome       String?
+  modalidade            Modalidade     @default(SBPE)
+  faseAtual             FaseProcesso   @default(ENTRADA)
+  origem                OrigemProposta @default(MANUAL)
+  prioridade            Prioridade     @default(NORMAL)
+  dataEntrada           DateTime       @default(now())
+  prazoSlaAte           DateTime?
+  motivoReprovacao      String?
+  motivoCancelamento    String?
+  bloqueioResumo        String?
+
+  compradorNome     String
+  compradorCpf      String
+  compradorTelefone String?
+  compradorEmail    String?
+
+  vendedorNome    String?
+  vendedorCpfCnpj String?
+
+  imovelEndereco     String?
+  imovelCidade       String?
+  imovelUf           String?  @db.Char(2)
+  valorImovel        Decimal? @db.Decimal(14, 2)
+  valorFinanciamento Decimal? @db.Decimal(14, 2)
+
+  imobiliaria String?
+
+  analistaId String?
+  analista   Usuario? @relation("AnalistaPropostas", fields: [analistaId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  historicos         HistoricoProposta[]
+  checklistRespostas ChecklistResposta[]
+  compromissos       Compromisso[]
+  bloqueios          BloqueioProcesso[]
+
+  @@index([faseAtual])
+  @@index([analistaId])
+  @@index([prazoSlaAte])
+}
+
+model HistoricoProposta {
+  id         String        @id @default(cuid())
+  propostaId String
+  proposta   Proposta      @relation(fields: [propostaId], references: [id], onDelete: Cascade)
+  deFase     FaseProcesso?
+  paraFase   FaseProcesso
+  observacao String?
+  usuarioId  String?
+  usuario    Usuario?      @relation(fields: [usuarioId], references: [id])
+  createdAt  DateTime      @default(now())
+
+  @@index([propostaId])
+}
+
+model TipoDependencia {
+  id        String   @id @default(cuid())
+  codigo    String   @unique
+  label     String
+  ativo     Boolean  @default(true)
+  sistema   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bloqueios BloqueioProcesso[]
+}
+
+model BloqueioProcesso {
+  id                String           @id @default(cuid())
+  propostaId        String
+  proposta          Proposta         @relation(fields: [propostaId], references: [id], onDelete: Cascade)
+  tipoDependenciaId String
+  tipoDependencia   TipoDependencia  @relation(fields: [tipoDependenciaId], references: [id])
+  titulo            String
+  descricao         String?
+  status            BloqueioStatus   @default(ABERTO)
+  origem            BloqueioOrigem   @default(MANUAL)
+  checklistRespostaId String?
+  abertoPorId       String?
+  abertoPor         Usuario?         @relation("BloqueioAbertoPor", fields: [abertoPorId], references: [id])
+  resolvidoPorId    String?
+  resolvidoPor      Usuario?         @relation("BloqueioResolvidoPor", fields: [resolvidoPorId], references: [id])
+  abertoEm          DateTime         @default(now())
+  resolvidoEm       DateTime?
+
+  @@index([propostaId, status])
+  @@index([tipoDependenciaId])
+  @@index([status])
+}
+
+model ChecklistTemplateItem {
+  id        String         @id @default(cuid())
+  codigo    String         @unique
+  grupo     ChecklistGrupo
+  label     String
+  ordem     Int
+  ativo     Boolean        @default(true)
+  createdAt DateTime       @default(now())
+
+  respostas ChecklistResposta[]
+}
+
+model ChecklistResposta {
+  id                String                @id @default(cuid())
+  propostaId        String
+  proposta          Proposta              @relation(fields: [propostaId], references: [id], onDelete: Cascade)
+  templateId        String
+  template          ChecklistTemplateItem @relation(fields: [templateId], references: [id])
+  status            ChecklistStatus       @default(PENDENTE)
+  observacao        String?
+  /** Validade informada/detectada (ex.: CNH) — persiste ao sair da tela. */
+  validadeInformada DateTime?
+  updatedAt         DateTime              @updatedAt
+  createdAt         DateTime              @default(now())
+
+  documentos Documento[]
+
+  @@unique([propostaId, templateId])
+  @@index([propostaId])
+}
+
+model Documento {
+  id                  String            @id @default(cuid())
+  checklistRespostaId String
+  checklistResposta   ChecklistResposta @relation(fields: [checklistRespostaId], references: [id], onDelete: Cascade)
+  nomeOriginal        String
+  mimeType            String
+  path                String
+  hash                String?
+  tamanhoBytes        Int
+  createdAt           DateTime          @default(now())
+
+  validacoes ValidacaoDocumento[]
+
+  @@index([checklistRespostaId])
+}
+
+model ValidacaoDocumento {
+  id                String          @id @default(cuid())
+  documentoId       String
+  documento         Documento       @relation(fields: [documentoId], references: [id], onDelete: Cascade)
+  status            ValidacaoStatus @default(PENDENTE)
+  tipoRegra         String
+  validadeDetectada DateTime?
+  detalhes          Json?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@index([documentoId])
+}
+
+model SlaConfig {
+  id         String       @id @default(cuid())
+  faseEtapa  FaseProcesso @unique
+  horasPrazo Int
+  ativo      Boolean      @default(true)
+  updatedAt  DateTime     @updatedAt
+}
+
+model Compromisso {
+  id               String            @id @default(cuid())
+  titulo           String
+  tipo             CompromissoTipo   @default(OUTRO)
+  inicio           DateTime
+  fim              DateTime?
+  observacao       String?
+  usuarioId        String
+  usuario          Usuario           @relation(fields: [usuarioId], references: [id])
+  propostaId       String?
+  proposta         Proposta?         @relation(fields: [propostaId], references: [id], onDelete: SetNull)
+  origem           CompromissoOrigem @default(CONCRETIZA)
+  googleEventId    String?
+  googleCalendarId String?
+  sincronizadoEm   DateTime?
+  syncErro         String?
+  googleUpdatedAt  DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@unique([usuarioId, googleEventId])
+  @@index([usuarioId, inicio])
+  @@index([propostaId])
+  @@index([googleEventId])
+}
+
+model GoogleConta {
+  id                   String    @id @default(cuid())
+  usuarioId            String    @unique
+  usuario              Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  emailGoogle          String
+  refreshTokenEnc      String
+  accessTokenEnc       String?
+  accessTokenExpiresAt DateTime?
+  calendarId           String    @default("primary")
+  ativo                Boolean   @default(true)
+  syncToken            String?
+  channelId            String?
+  resourceId           String?
+  channelExpiresAt     DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+}
+
+model AgendaCompartilhamento {
+  id              String                      @id @default(cuid())
+  donoId          String
+  dono            Usuario                     @relation("AgendaDono", fields: [donoId], references: [id], onDelete: Cascade)
+  viewerUsuarioId String?
+  viewerUsuario   Usuario?                    @relation("AgendaViewer", fields: [viewerUsuarioId], references: [id], onDelete: Cascade)
+  viewerGrupoId   String?
+  viewerGrupo     GrupoUsuario?               @relation(fields: [viewerGrupoId], references: [id], onDelete: Cascade)
+  nivel           AgendaCompartilhamentoNivel @default(LEITURA)
+  createdAt       DateTime                    @default(now())
+
+  @@index([donoId])
+  @@index([viewerUsuarioId])
+  @@index([viewerGrupoId])
+}

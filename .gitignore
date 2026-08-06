@@ -32,6 +32,13 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+
+# uploads locais
+/uploads
+
+# Postgres embutido (dev sem Docker)
+.data/
 
 # vercel
 .vercel

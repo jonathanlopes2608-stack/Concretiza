@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: concretiza
+      POSTGRES_PASSWORD: concretiza
+      POSTGRES_DB: concretiza
+    ports:
+      # Host 5437 evita conflito com outros Postgres na 5432
+      - "5437:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U concretiza -d concretiza"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      # Host 3047 evita conflito com outros Next.js na 3000
+      - "3047:3000"
+    environment:
+      DATABASE_URL: postgresql://concretiza:concretiza@db:5432/concretiza?schema=public
+      AUTH_SECRET: ${AUTH_SECRET:-altere-em-producao}
+      AUTH_TRUST_HOST: "true"
+      APP_URL: ${APP_URL:-http://localhost:3047}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@concretiza.local}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-Admin@123}
+      UPLOAD_DIR: /app/uploads
+    volumes:
+      - uploads_data:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Produção / VPS: use docker-compose.prod.yml (Postgres sem porta pública + secrets obrigatórios).
+
+volumes:
+  postgres_data:
+  uploads_data:

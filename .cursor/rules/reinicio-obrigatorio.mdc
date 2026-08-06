@@ -1,0 +1,30 @@
+---
+description: Reinício obrigatório do ambiente local após mudanças — padrão Concretiza
+alwaysApply: true
+---
+
+# Reiniciar o sistema após mudanças (obrigatório)
+
+Portas dedicadas: app **3047**, Postgres **5437**. Atalhos: `inicia.bat` / `reinicia.bat`.
+
+## Regra padrão
+Sempre que alterar código ou config que afete o app em execução, **não confiar só no hot reload**. Ao final da tarefa (ou assim que a mudança exigir):
+
+1. **Parar** o processo na porta 3047.
+2. Garantir o Postgres na 5437 (Docker `db` ou `node scripts/start-embedded-db.mjs`).
+3. Se houver migration: `npx prisma migrate deploy` (+ seed se necessário).
+4. **Subir** de novo (`npm run dev` na 3047, ou `reinicia.bat` / `inicia.bat`).
+5. Só encerrar a tarefa com o sistema **no ar** e, se possível, URL de acesso informada.
+
+## Quando aplicar (lista mínima — na dúvida, reinicie)
+- Novas rotas/páginas/componentes de tela
+- `middleware`, auth, `.env`, `next.config`, `package.json`
+- Schema Prisma / migrations / seed
+- Docker / scripts de boot
+
+## Como parar a 3047 (Windows)
+Encerrar apenas PIDs em `LISTENING` na porta 3047 (não matar processos aleatórios do `netstat`). Depois subir com `npm run dev` no diretório do projeto ou `reinicia.bat`.
+
+## Proibido
+- Terminar dizendo “atualizei” sem reiniciar quando a UI/rotas novas não aparecem.
+- Deixar o sistema parado ao final por causa da própria mudança.

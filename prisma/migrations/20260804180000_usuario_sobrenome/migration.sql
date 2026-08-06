@@ -1,0 +1,1 @@
+ALTER TABLE "Usuario" ADD COLUMN "sobrenome" TEXT NOT NULL DEFAULT '';
