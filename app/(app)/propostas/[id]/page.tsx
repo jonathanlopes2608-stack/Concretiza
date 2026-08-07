@@ -14,6 +14,7 @@ import {
 } from "@/src/lib/linha-do-tempo";
 import { listarTiposDependencia } from "@/src/modules/bloqueios/service";
 import { sincronizarChecklistComValidacoes } from "@/src/modules/checklist/service";
+import { parseCadastroCliente } from "@/src/modules/propostas/cadastro-cliente";
 import { buscarPropostaPorId } from "@/src/modules/propostas/service";
 import { listarAnalistasOpcoes } from "@/src/modules/usuarios/service";
 
@@ -62,6 +63,7 @@ export default async function PropostaDetalhePage({ params }: Props) {
   const ultimoEvento =
     proposta.historicos[0]?.createdAt ?? proposta.updatedAt ?? new Date();
   const atualizadoEmLabel = formatAtualizadoEm(ultimoEvento);
+  const cadastro = parseCadastroCliente(proposta.cadastroCliente);
 
   return (
     <div className="space-y-6">
@@ -84,6 +86,12 @@ export default async function PropostaDetalhePage({ params }: Props) {
           </div>
         </div>
         <div className="flex gap-2">
+          <a
+            href={`/api/propostas/${proposta.id}/formulario.pdf`}
+            className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-brand-900 hover:bg-neutral-100"
+          >
+            Imprimir / Exportar formulário PDF
+          </a>
           <Link
             href={`/propostas/${proposta.id}/editar`}
             className="rounded-md bg-brand-700 px-3 py-2 text-sm font-medium text-white hover:bg-brand-900"
@@ -120,6 +128,9 @@ export default async function PropostaDetalhePage({ params }: Props) {
           <Row label="CPF" value={proposta.compradorCpf} />
           <Row label="Telefone" value={proposta.compradorTelefone} />
           <Row label="E-mail" value={proposta.compradorEmail} />
+          <Row label="Nascimento" value={cadastro.dataNascimento} />
+          <Row label="Estado civil" value={cadastro.estadoCivil} />
+          <Row label="Documento" value={[cadastro.docTipo, cadastro.docNumero].filter(Boolean).join(" — ") || null} />
         </Card>
         <Card title="Vendedor / Imóvel">
           <Row label="Vendedor" value={proposta.vendedorNome} />
@@ -134,6 +145,51 @@ export default async function PropostaDetalhePage({ params }: Props) {
           <Row label="Imobiliária" value={proposta.imobiliaria} />
         </Card>
       </div>
+
+      {(cadastro.enderecoLogradouro ||
+        cadastro.fontePagadoraNome ||
+        cadastro.agenciaCodigoNome ||
+        cadastro.protocolo) && (
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Card title="Endereço residencial (cadastro)">
+            <Row
+              label="Endereço"
+              value={
+                [
+                  cadastro.enderecoLogradouro,
+                  cadastro.enderecoNumero,
+                  cadastro.enderecoComplemento,
+                ]
+                  .filter(Boolean)
+                  .join(", ") || null
+              }
+            />
+            <Row
+              label="Bairro / Cidade"
+              value={
+                [cadastro.enderecoBairro, cadastro.enderecoMunicipio, cadastro.enderecoUf]
+                  .filter(Boolean)
+                  .join(" / ") || null
+              }
+            />
+            <Row label="CEP" value={cadastro.enderecoCep} />
+            <Row label="Ocupação do imóvel" value={cadastro.ocupacaoImovel} />
+          </Card>
+          <Card title="Renda / Agência (cadastro)">
+            <Row label="Fonte pagadora" value={cadastro.fontePagadoraNome} />
+            <Row label="Ocupação" value={cadastro.ocupacaoProfissional} />
+            <Row
+              label="Renda bruta / líquida"
+              value={
+                [cadastro.rendaBruta, cadastro.rendaLiquida].filter(Boolean).join(" / ") || null
+              }
+            />
+            <Row label="Agência" value={cadastro.agenciaCodigoNome} />
+            <Row label="Protocolo" value={cadastro.protocolo} />
+            <Row label="Correspondente" value={cadastro.codigoCorrespondente} />
+          </Card>
+        </div>
+      )}
 
       <Card title="Identificação e SLA">
         <Row label="Processo interno" value={proposta.numeroProcessoInterno} />

@@ -3,7 +3,7 @@
 > Fonte única de verdade sobre escopo, decisões e progresso. Consultar antes de
 > cada tarefa; atualizar após mudanças relevantes. (skill: `concretiza-memoria`)
 
-_Última atualização: 2026-08-06 (fix login Railway: secureCookie no middleware)_
+_Última atualização: 2026-08-06 (formulário cadastro cliente + PDF)_
 
 ## Objetivo e problema
 Sistema web para controlar a **fila de produção** e o **pipeline operacional**
@@ -79,6 +79,9 @@ Bloqueios respondem **por que parou** e **de quem depende**, independentes da fa
 - [x] **Linha do tempo** visual no detalhe do processo (botão ao lado do nome; dados do histórico).
 - [x] Prep **deploy web**: `docker-compose.prod.yml`, seed no container (`tsx`+`prisma` em deps),
   `docs/DEPLOY.md` (Railway agora → VPS depois).
+- [x] **Formulário cadastro de clientes (Caixa)**: campos do PDF em `Proposta.cadastroCliente`
+  (JSON) + seções no form; export `GET /api/propostas/[id]/formulario.pdf` (pdf-lib);
+  template de referência em `docs/templates/` e `public/templates/`.
 - [ ] Importação direta da planilha CONTROLE ORÇA (opcional).
 - [ ] Deploy efetivo no Railway + contas dos validadores (operacional).
 
@@ -174,3 +177,7 @@ Bloqueios respondem **por que parou** e **de quem depende**, independentes da fa
   lia cookie errado (`authjs…` vs `__Secure-authjs…`); login gravava sessão e a
   fila bounceava de volta ao `/login`. Fix: `secureCookie` no middleware + check
   de sessão após `signIn` no `loginAction`.
+- 2026-08-06 — Cadastro de clientes alinhado ao formulário Caixa (PDF): campo JSON
+  `cadastroCliente` + UI em seções; PDF gerado com pdf-lib (layout recriado —
+  PDF original não era fillable e já vinha preenchido); data de geração em
+  America/Sao_Paulo; botão no detalhe/edição.

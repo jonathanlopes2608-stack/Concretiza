@@ -107,6 +107,9 @@ export async function criarPropostaRecord(
         compradorCpf: data.compradorCpf,
         compradorTelefone: emptyToNull(data.compradorTelefone ?? null),
         compradorEmail: emptyToNull(data.compradorEmail ?? null),
+        ...(data.cadastroCliente
+          ? { cadastroCliente: data.cadastroCliente as Prisma.InputJsonValue }
+          : {}),
         vendedorNome: emptyToNull(data.vendedorNome ?? null),
         vendedorCpfCnpj: emptyToNull(data.vendedorCpfCnpj ?? null),
         imovelEndereco: emptyToNull(data.imovelEndereco ?? null),
@@ -208,6 +211,9 @@ export async function atualizarPropostaRecord(id: string, data: PropostaUpdateIn
     patch.valorFinanciamento = data.valorFinanciamento;
   }
   if (data.imobiliaria !== undefined) patch.imobiliaria = emptyToNull(data.imobiliaria ?? null);
+  if (data.cadastroCliente !== undefined) {
+    patch.cadastroCliente = data.cadastroCliente as Prisma.InputJsonValue;
+  }
 
   return prisma.proposta.update({ where: { id }, data: patch });
 }

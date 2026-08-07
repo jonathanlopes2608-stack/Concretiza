@@ -160,6 +160,9 @@ model Proposta {
   compradorTelefone String?
   compradorEmail    String?
 
+  /** Dados do formulário de cadastro de clientes (Caixa) — campos além dos da fila. */
+  cadastroCliente Json?
+
   vendedorNome    String?
   vendedorCpfCnpj String?
 

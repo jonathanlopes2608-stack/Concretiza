@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireRoles } from "@/src/lib/rbac";
 import { calcularPrazoSla } from "@/src/lib/sla";
 import {
+  parsePropostaForm,
   propostaCreateSchema,
   propostaUpdateSchema,
 } from "@/src/modules/propostas/schema";
@@ -34,7 +35,7 @@ export async function criarPropostaAction(
 ): Promise<ActionResult<{ id: string }>> {
   try {
     const session = await requireRoles([...ROLES_ESCRITA]);
-    const parsed = propostaCreateSchema.safeParse(formToObject(formData));
+    const parsed = propostaCreateSchema.safeParse(parsePropostaForm(formToObject(formData)));
     if (!parsed.success) {
       return { ok: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos" };
     }
@@ -74,7 +75,7 @@ export async function atualizarPropostaAction(
 ): Promise<ActionResult> {
   try {
     await requireRoles([...ROLES_ESCRITA]);
-    const parsed = propostaUpdateSchema.safeParse(formToObject(formData));
+    const parsed = propostaUpdateSchema.safeParse(parsePropostaForm(formToObject(formData)));
     if (!parsed.success) {
       return { ok: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos" };
     }

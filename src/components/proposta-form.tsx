@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { CadastroClienteSections } from "@/src/components/cadastro-cliente-sections";
+import type { CadastroCliente } from "@/src/modules/propostas/cadastro-cliente";
 import {
   atualizarPropostaAction,
   criarPropostaAction,
@@ -25,6 +27,7 @@ type Initial = {
   valorImovel?: string | number | null;
   valorFinanciamento?: string | number | null;
   imobiliaria?: string | null;
+  cadastroCliente?: CadastroCliente | null;
 };
 
 type Props = {
@@ -126,6 +129,13 @@ export function PropostaForm({ mode, propostaId, initial }: Props) {
         </div>
       </section>
 
+      <section>
+        <h3 className="mb-3 text-sm font-semibold text-brand-900">
+          Formulário de cadastro de clientes (impressão)
+        </h3>
+        <CadastroClienteSections cadastro={initial?.cadastroCliente} />
+      </section>
+
       <section className="rounded-lg border border-slate-200 bg-surface p-5">
         <h3 className="mb-3 text-sm font-semibold text-brand-900">Vendedor</h3>
         <div className="grid gap-4 md:grid-cols-2">
@@ -135,7 +145,7 @@ export function PropostaForm({ mode, propostaId, initial }: Props) {
       </section>
 
       <section className="rounded-lg border border-slate-200 bg-surface p-5">
-        <h3 className="mb-3 text-sm font-semibold text-brand-900">Imóvel</h3>
+        <h3 className="mb-3 text-sm font-semibold text-brand-900">Imóvel (financiamento)</h3>
         <div className="grid gap-4 md:grid-cols-3">
           <Field label="Endereço" name="imovelEndereco" defaultValue={initial?.imovelEndereco ?? ""} className="md:col-span-3" />
           <Field label="Cidade" name="imovelCidade" defaultValue={initial?.imovelCidade ?? ""} />
