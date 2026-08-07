@@ -166,29 +166,30 @@ export function AppShell({
           </div>
         </Link>
 
-        <Suspense
-          fallback={
-            <div className="min-w-0 flex-1" aria-hidden />
-          }
-        >
-          <ModuleNav userRole={userRole} permissoes={permissoes} />
-        </Suspense>
+        <div className="flex min-w-0 flex-1 items-stretch">
+          <Suspense
+            fallback={
+              <div className="min-w-0 flex-1" aria-hidden />
+            }
+          >
+            <ModuleNav userRole={userRole} permissoes={permissoes} />
+          </Suspense>
+          <ContaMenu permissoes={permissoes} pathname={pathname} />
+        </div>
 
-        <ContaMenu permissoes={permissoes} pathname={pathname} />
-
-        <div className="flex shrink-0 items-center gap-4 border-l border-white/10 px-4 py-4 sm:gap-6 sm:px-8">
-          <div className="hidden min-w-0 text-right sm:block">
-            <p className="max-w-[14rem] truncate text-[24px] font-medium sm:max-w-[24rem] sm:text-[28px]">
+        <div className="flex w-[13.5rem] shrink-0 items-center gap-2 border-l border-white/10 px-3 py-3 sm:w-[15rem] sm:gap-3 sm:px-4">
+          <div className="hidden min-w-0 flex-1 text-right sm:block">
+            <p className="truncate text-[13px] font-medium leading-tight sm:text-[14px]" title={userName || "Usuário"}>
               {userName || "Usuário"}
             </p>
-            <p className="hidden truncate text-[20px] text-white/65 sm:block">
+            <p className="truncate text-[11px] leading-tight text-white/65 sm:text-[12px]">
               {labelGrupo(userRole)}
             </p>
           </div>
-          <form action={logoutAction}>
+          <form action={logoutAction} className="shrink-0">
             <button
               type="submit"
-              className="rounded-md border border-white/25 px-4 py-3 text-[22px] font-medium text-white hover:bg-white/10 sm:px-5 sm:text-[24px]"
+              className="rounded-md border border-white/25 px-3 py-2 text-[14px] font-medium text-white hover:bg-white/10 sm:px-4 sm:text-[15px]"
             >
               Sair
             </button>

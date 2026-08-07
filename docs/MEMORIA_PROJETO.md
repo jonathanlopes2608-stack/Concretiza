@@ -3,7 +3,7 @@
 > Fonte única de verdade sobre escopo, decisões e progresso. Consultar antes de
 > cada tarefa; atualizar após mudanças relevantes. (skill: `concretiza-memoria`)
 
-_Última atualização: 2026-08-06 (nav horizontal ~20% menor)_
+_Última atualização: 2026-08-06 (header: nome usuário truncado)_
 
 ## Objetivo e problema
 Sistema web para controlar a **fila de produção** e o **pipeline operacional**
@@ -216,3 +216,5 @@ Bloqueios respondem **por que parou** e **de quem depende**, independentes da fa
   `overflow-x-auto` só abaixo de `md`.
 - 2026-08-06 — Tabstrip da Fila ~1.5× (padding, tipografia 18px, ícone X 15px)
   em `process-tabs.tsx`.
+- 2026-08-06 — Header: bloco do usuário com largura fixa + fonte menor +
+  `truncate`; nav (módulos+CONTA) em `flex-1 min-w-0` para não sobrepor CONFIG/CONTA.
