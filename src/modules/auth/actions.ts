@@ -63,15 +63,9 @@ export async function loginAction(input: unknown): Promise<ActionResult> {
       return { ok: false, error: "Falha ao autenticar" };
     }
 
-    // Garante que o cookie de sessão foi gravado (evita “sucesso” + bounce no middleware).
-    const session = await auth();
-    if (!session?.user?.id) {
-      return {
-        ok: false,
-        error:
-          "Login autenticou, mas a sessão não ficou ativa. Confirme AUTH_SECRET e cookies HTTPS.",
-      };
-    }
+    // Não re-ler a sessão aqui: o cookie Set-Cookie do signIn ainda pode não
+    // estar visível para auth() na mesma request (falso negativo em prod).
+    // O client redireciona para /fila; o middleware valida o JWT no próximo request.
     return { ok: true };
   } catch (error) {
     if (error instanceof AuthError) {

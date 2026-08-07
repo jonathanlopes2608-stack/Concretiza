@@ -3,7 +3,7 @@
 > Fonte única de verdade sobre escopo, decisões e progresso. Consultar antes de
 > cada tarefa; atualizar após mudanças relevantes. (skill: `concretiza-memoria`)
 
-_Última atualização: 2026-08-06 (header: só primeiro nome)_
+_Última atualização: 2026-08-07 (fix race pós-login)_
 
 ## Objetivo e problema
 Sistema web para controlar a **fila de produção** e o **pipeline operacional**
@@ -193,6 +193,10 @@ Bloqueios respondem **por que parou** e **de quem depende**, independentes da fa
   lia cookie errado (`authjs…` vs `__Secure-authjs…`); login gravava sessão e a
   fila bounceava de volta ao `/login`. Fix: `secureCookie` no middleware + check
   de sessão após `signIn` no `loginAction`.
+- 2026-08-07 — Check pós-`signIn` no `loginAction` era prematuro (race): cookie
+  já gravado, mas `auth()` na mesma request falhava → mensagem falsa
+  “sessão não ficou ativa”; F5 entrava. Fix: remover re-leitura; redirect
+  `/fila` e middleware (`secureCookie`) valida no próximo request.
 - 2026-08-06 — Cadastro de clientes alinhado ao formulário Caixa (PDF): campo JSON
   `cadastroCliente` + UI em seções; PDF gerado com pdf-lib (layout recriado —
   PDF original não era fillable e já vinha preenchido); data de geração em
