@@ -105,7 +105,7 @@ def main():
 
     meta = doc.add_paragraph()
     meta.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    r = meta.add_run("Versão 1.0 — agosto/2026 · App: http://localhost:3047")
+    r = meta.add_run("Versão 1.1 — agosto/2026 · App: http://localhost:3047")
     set_run_font(r, size=10)
 
     # 1 Visão geral
@@ -128,7 +128,7 @@ def main():
     add_bullets(
         doc,
         [
-            "ADMIN — configuração completa (incluindo tipos de dependência).",
+            "ADMIN — configuração completa (incluindo tipos de dependência e usuários).",
             "COORDENADOR — fila, reatribuição, força avanço com bloqueio, dashboard.",
             "ANALISTA — trabalha propostas, checklist, abre/resolve bloqueios.",
             "VISUALIZAÇÃO — somente leitura.",
@@ -155,8 +155,71 @@ def main():
     )
     add_image(doc, "01-login.png", "Figura 1 — Tela de login")
 
-    # 2 Mapeamento
-    add_heading(doc, "2. Mapa planilha Excel ↔ POP ↔ sistema", 1)
+    # 2 Navegação
+    add_heading(doc, "2. Navegação (menu horizontal)", 1)
+    add_para(
+        doc,
+        "Após o login, o sistema usa uma barra superior com módulos (não há menu lateral). "
+        "O item ativo fica destacado; à direita aparecem o nome do usuário e o botão Sair. "
+        "O logo / nome da marca ficam à esquerda (branding da instalação).",
+    )
+    add_para(doc, "Módulos do menu:", bold=True)
+    add_bullets(
+        doc,
+        [
+            "FILA — lista de processos e detalhe (com abas internas; ver seção 3).",
+            "DASHBOARD — produtividade (funil, gargalos, analistas).",
+            "AGENDA — compromissos e integração Google Calendar.",
+            "USUÁRIOS — gestão de usuários e grupos (ADMIN).",
+            "CONFIG — tipos de dependência (“de quem depende”).",
+            "CONTA — segurança (2FA) e integrações do usuário.",
+        ],
+    )
+    add_para(
+        doc,
+        "Dica: o sistema lembra a última rota/filtros de cada módulo na sessão. "
+        "Ao clicar de novo em FILA (ou outro módulo), você tende a voltar onde parou.",
+    )
+
+    # 3 Abas
+    add_heading(doc, "3. Sistema de abas (módulo Fila)", 1)
+    add_para(
+        doc,
+        "Dentro do módulo Fila, abaixo do menu horizontal, há uma barra de abas: "
+        "a aba fixa “Fila” (sempre a primeira, sem botão fechar) e abas de processos "
+        "abertos (número/nome do processo, com X para fechar).",
+    )
+    add_para(doc, "Vantagens no dia a dia:", bold=True)
+    add_bullets(
+        doc,
+        [
+            "Vários processos abertos ao mesmo tempo — compare, copie dados ou "
+            "alterne sem perder o que estava fazendo em cada um.",
+            "Fila sempre acessível — a aba fixa “Fila” permanece; um clique volta à lista "
+            "com filtros, sem “perder” os processos abertos.",
+            "Não perde contexto ao alternar — troca rápida entre lista e detalhes "
+            "(e entre processos) sem reabrir tudo do zero a cada clique.",
+            "Abas só no módulo Fila — em Dashboard, Agenda, Usuários etc. a barra some "
+            "para não poluir outras telas; as abas de processo continuam salvas e "
+            "reaparecem ao voltar à Fila.",
+            "Estado preservado ao voltar — as abas ficam em armazenamento local do "
+            "navegador; fechar o detalhe com X remove só aquela aba.",
+        ],
+    )
+    add_para(doc, "Como usar:", bold=True)
+    add_numbered(
+        doc,
+        [
+            "Na Fila, clique no número do processo — abre o detalhe e cria uma aba.",
+            "Abra outro processo da mesma forma; as abas ficam lado a lado.",
+            "Clique numa aba de processo para alternar; clique em “Fila” para a lista.",
+            "Use o X na aba para fechar aquele processo (a Fila nunca fecha).",
+        ],
+    )
+    add_image(doc, "11-abas-processos.png", "Figura 2 — Abas: Fila fixa + processos abertos")
+
+    # 4 Mapeamento
+    add_heading(doc, "4. Mapa planilha Excel ↔ POP ↔ sistema", 1)
     add_para(
         doc,
         "A planilha CONTROLE ORÇA/ANÁLISE/ENGENHARIA e o POP (Anexo X — Concessão CCA) "
@@ -180,12 +243,12 @@ def main():
     )
     add_para(
         doc,
-        "Dica: tipos novos de “de quem depende” (ex.: Corretor) se cadastram em Dependências — "
+        "Dica: tipos novos de “de quem depende” (ex.: Corretor) se cadastram em CONFIG → Dependências — "
         "não é necessário criar uma fase nova para cada ator.",
     )
 
-    # 3 Fila
-    add_heading(doc, "3. Fila de processos", 1)
+    # 5 Fila
+    add_heading(doc, "5. Fila de processos", 1)
     add_para(
         doc,
         "Objetivo: ver, em uma tela, fase, se está travado, de quem depende, analista, despachante e SLA.",
@@ -194,21 +257,21 @@ def main():
     add_numbered(
         doc,
         [
-            "No menu, clique em Fila.",
+            "No menu horizontal, clique em FILA.",
             "Use Busca (processo, Caixa, nome, CPF) e filtros de Fase, Depende de e Analista.",
             "Marque “Só travados” ou “SLA estourado” para priorizar.",
-            "Clique no número do processo para abrir o detalhe.",
-            "Use Exportar CSV para baixar a fila atual.",
+            "Clique no número do processo para abrir o detalhe (abre uma aba).",
+            "Use Exportar CSV para baixar a fila atual; Nova proposta / Importar Excel para entrada.",
         ],
     )
     add_para(
         doc,
         "A coluna “Parado em” mostra o bloqueio aberto mais antigo (ex.: Cliente / comprador: Enviar CNH).",
     )
-    add_image(doc, "02-fila.png", "Figura 2 — Fila de processos com fase e “Parado em”")
+    add_image(doc, "02-fila.png", "Figura 3 — Fila com menu horizontal e barra de abas")
 
-    # 4 Nova proposta
-    add_heading(doc, "4. Nova proposta", 1)
+    # 6 Nova proposta
+    add_heading(doc, "6. Nova proposta", 1)
     add_para(doc, "Objetivo: cadastrar um processo (equivalente a uma linha da planilha ORÇA).", bold=False)
     add_numbered(
         doc,
@@ -219,10 +282,10 @@ def main():
             "Clique em Cadastrar proposta — a fase inicial é ENTRADA.",
         ],
     )
-    add_image(doc, "03-nova-proposta.png", "Figura 3 — Cadastro manual de proposta")
+    add_image(doc, "03-nova-proposta.png", "Figura 4 — Cadastro manual de proposta")
 
-    # 5 Pipeline
-    add_heading(doc, "5. Detalhe — Pipeline (mudar fase)", 1)
+    # 7 Pipeline
+    add_heading(doc, "7. Detalhe — Pipeline (mudar fase)", 1)
     add_para(
         doc,
         "Objetivo: avançar o processo conforme o andamento real (mesmas fases da planilha).",
@@ -230,12 +293,13 @@ def main():
     add_numbered(
         doc,
         [
-            "Abra o processo na fila.",
+            "Abra o processo na fila (ou pela aba já aberta).",
             "No painel Pipeline, escolha a Nova fase e, se for cancelar/reprovar, informe o Motivo.",
             "Clique em Alterar fase.",
             "Se houver bloqueio aberto, o analista deve resolvê-lo; o coordenador/admin pode marcar "
             "“Forçar avanço com bloqueio aberto” (observação obrigatória).",
             "Use Atribuir para definir o analista responsável.",
+            "O botão “Linha do tempo” (ao lado do título) mostra o histórico visual do processo.",
         ],
     )
     add_para(
@@ -243,10 +307,10 @@ def main():
         "Regra: para finalizar, não pode haver bloqueio aberto. Ao sair de Conformidade para etapas "
         "seguintes, o checklist documental precisa estar 100% OK.",
     )
-    add_image(doc, "04-detalhe-pipeline-bloqueios.png", "Figura 4 — Painel Pipeline no detalhe do processo")
+    add_image(doc, "04-detalhe-pipeline-bloqueios.png", "Figura 5 — Detalhe do processo (Pipeline + abas)")
 
-    # 6 Bloqueios
-    add_heading(doc, "6. Detalhe — Bloqueios (de quem depende)", 1)
+    # 8 Bloqueios
+    add_heading(doc, "8. Detalhe — Bloqueios (de quem depende)", 1)
     add_para(
         doc,
         "Objetivo: registrar o que falta e de quem depende — substitui anotações soltas na planilha.",
@@ -256,14 +320,14 @@ def main():
         [
             "Em Bloqueios / de quem depende, escolha o tipo (Cliente, Despachante, Engenharia…).",
             "Descreva o que precisa para seguir (ex.: Enviar CNH atualizada).",
-            "Clique em Registrar bloqueio — a fila passa a mostrar isso em “Parado em”.",
+            "Clique em Registrar / Abrir bloqueio — a fila passa a mostrar isso em “Parado em”.",
             "Quando a pendência for cumprida, clique em Resolver.",
         ],
     )
-    add_image(doc, "05-bloqueios.png", "Figura 5 — Bloqueio aberto e formulário para registrar novo")
+    add_image(doc, "05-bloqueios.png", "Figura 6 — Bloqueio aberto e formulário para registrar novo")
 
-    # 7 Checklist
-    add_heading(doc, "7. Checklist documental (Conformidade)", 1)
+    # 9 Checklist
+    add_heading(doc, "9. Checklist documental (Conformidade)", 1)
     add_para(
         doc,
         "Objetivo: validar documentos do comprador, vendedor e imóvel. Corresponde à etapa de "
@@ -272,17 +336,17 @@ def main():
     add_numbered(
         doc,
         [
-            "Anexe o arquivo no item correspondente.",
+            "Na fase Conformidade (ou ao expandir o checklist), anexe o arquivo no item correspondente.",
             "Em RG/CNH, o sistema tenta ler validade e CPF (OCR). Confira o resultado.",
             "Marque OK, PENDENTE ou REPROVADO.",
             "Item REPROVADO abre automaticamente um bloqueio para Cliente.",
             "Item OK fica bloqueado para o analista; só coordenador/admin reabre.",
         ],
     )
-    add_image(doc, "06-checklist.png", "Figura 6 — Checklist documental com validação automática")
+    add_image(doc, "06-checklist.png", "Figura 7 — Checklist documental com validação automática")
 
-    # 8 Dashboard
-    add_heading(doc, "8. Dashboard de produtividade", 1)
+    # 10 Dashboard
+    add_heading(doc, "10. Dashboard de produtividade", 1)
     add_para(doc, "Objetivo: coordenação — funil, gargalos e produção por analista.")
     add_bullets(
         doc,
@@ -294,10 +358,15 @@ def main():
             "Filtro 7d / 30d / 90d no topo.",
         ],
     )
-    add_image(doc, "07-dashboard.png", "Figura 7 — Dashboard de produtividade")
+    add_para(
+        doc,
+        "No menu horizontal, clique em DASHBOARD. Nesta tela a barra de abas da Fila não aparece "
+        "(as abas de processo ficam guardadas e voltam ao reabrir FILA).",
+    )
+    add_image(doc, "07-dashboard.png", "Figura 8 — Dashboard de produtividade")
 
-    # 9 Dependencias
-    add_heading(doc, "9. Tipos de dependência (coordenador/admin)", 1)
+    # 11 Dependencias
+    add_heading(doc, "11. Tipos de dependência (CONFIG)", 1)
     add_para(
         doc,
         "Objetivo: manter a lista de “de quem depende” (Cliente, Cartório, Engenharia…). "
@@ -306,15 +375,29 @@ def main():
     add_numbered(
         doc,
         [
-            "Menu Dependências.",
+            "No menu horizontal, clique em CONFIG (Dependências).",
             "Para criar: informe Código e Nome exibido → Adicionar.",
             "Para ocultar um tipo: Desativar.",
         ],
     )
-    add_image(doc, "08-dependencias.png", "Figura 8 — Cadastro de tipos de dependência")
+    add_image(doc, "08-dependencias.png", "Figura 9 — Cadastro de tipos de dependência")
 
-    # 10 Roteiro
-    add_heading(doc, "10. Roteiro do dia a dia (da entrada ao finalizado)", 1)
+    # 12 Usuarios / Agenda (resumo)
+    add_heading(doc, "12. Usuários e Agenda (resumo)", 1)
+    add_para(
+        doc,
+        "USUÁRIOS (ADMIN): cadastrar analistas/coordenadores, definir grupos e permissões de tela/ação.",
+    )
+    add_image(doc, "09-usuarios.png", "Figura 10 — Gestão de usuários")
+    add_para(
+        doc,
+        "AGENDA: compromissos internos e, se conectado, Google Calendar (conta Gmail pessoal no MVP). "
+        "Use CONTA → integrações para vincular o Google.",
+    )
+    add_image(doc, "10-agenda.png", "Figura 11 — Agenda")
+
+    # 13 Roteiro
+    add_heading(doc, "13. Roteiro do dia a dia (da entrada ao finalizado)", 1)
     add_para(doc, "Espelho prático da planilha ORÇA no Concretiza:")
     add_numbered(
         doc,
@@ -325,18 +408,20 @@ def main():
             "Sempre que depender de terceiro, abrir bloqueio com tipo + o que falta.",
             "Na Conformidade, trabalhar o checklist e anexos.",
             "Resolver bloqueios antes de finalizar.",
+            "Use as abas para manter 2–3 processos em paralelo sem perder a Fila.",
             "Acompanhar gargalos no Dashboard; exportar CSV da fila se precisar reportar.",
         ],
     )
 
-    # 11 Glossario
-    add_heading(doc, "11. Glossário rápido", 1)
+    # 14 Glossario
+    add_heading(doc, "14. Glossário rápido", 1)
     add_bullets(
         doc,
         [
             "Fase — etapa do pipeline (onde o processo está).",
             "Bloqueio — motivo da parada + de quem depende + o que precisa.",
             "SLA — prazo-alvo da fase atual (destaque vermelho se estourado).",
+            "Aba Fila — aba fixa do módulo Fila; sempre disponível enquanto você está em Fila/processo.",
             "Despachante — responsável externo de captação (texto, sem login).",
             "EN QA — analista interno de qualidade/análise.",
             "OS Engenharia — ordem de serviço / vistoria Caixa.",
@@ -345,7 +430,7 @@ def main():
         ],
     )
 
-    add_heading(doc, "12. Dicas e erros comuns", 1)
+    add_heading(doc, "15. Dicas e erros comuns", 1)
     add_bullets(
         doc,
         [
@@ -353,7 +438,10 @@ def main():
             "Não finaliza: ainda há bloqueio aberto — resolva antes.",
             "Checklist incompleto: não sai de Conformidade para Decisão/Formalização/Cartório.",
             "“Parado em” vazio: não há bloqueio aberto (o processo pode só estar aguardando trabalho interno).",
+            "Sumiram as abas? Elas só aparecem em FILA / detalhe de processo — volte pelo menu FILA.",
             "Este Word é editável — atualize prints e textos conforme a operação evoluir.",
+            "Regenerar este arquivo: python scripts/gerar-manual-operacional.py "
+            "(prints: node scripts/capturar-prints-manual.mjs com o app em 3047).",
         ],
     )
 

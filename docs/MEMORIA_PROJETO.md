@@ -3,7 +3,7 @@
 > Fonte única de verdade sobre escopo, decisões e progresso. Consultar antes de
 > cada tarefa; atualizar após mudanças relevantes. (skill: `concretiza-memoria`)
 
-_Última atualização: 2026-08-07 (fix race pós-login)_
+_Última atualização: 2026-08-07 (manual operacional v1.1 — nav horizontal + abas)_
 
 ## Objetivo e problema
 Sistema web para controlar a **fila de produção** e o **pipeline operacional**
@@ -101,9 +101,10 @@ Bloqueios respondem **por que parou** e **de quem depende**, independentes da fa
 - [ ] Deploy efetivo no Railway + contas dos validadores (operacional).
 
 ## Documentação operacional
-- Manual (analistas/coordenadores): [`docs/MANUAL_OPERACIONAL.docx`](MANUAL_OPERACIONAL.docx)
-- Prints das telas: `docs/manual/`
+- Manual (analistas/coordenadores): [`docs/MANUAL_OPERACIONAL.docx`](MANUAL_OPERACIONAL.docx) (v1.1 — menu horizontal + seção de abas)
+- Prints das telas: `docs/manual/` (inclui `11-abas-processos.png`)
 - Regenerar Word: `python scripts/gerar-manual-operacional.py`
+- Recapturar prints (app em 3047): `node scripts/capturar-prints-manual.mjs` (requer `playwright` + Chromium)
 
 ## Acesso local
 - App: **http://localhost:3047**
@@ -224,3 +225,6 @@ Bloqueios respondem **por que parou** e **de quem depende**, independentes da fa
   `truncate`; nav (módulos+CONTA) em `flex-1 min-w-0` para não sobrepor CONFIG/CONTA.
 - 2026-08-06 — Header: exibe só o primeiro nome (primeiro token de
   `session.user.name`); grupo/papel permanece abaixo; tooltip com nome completo.
+- 2026-08-07 — Manual operacional v1.1: prints atualizados (UI atual), texto de
+  navegação horizontal (sem sidebar), seção de vantagens do sistema de abas;
+  script `capturar-prints-manual.mjs` + regeneração do docx.
