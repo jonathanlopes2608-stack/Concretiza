@@ -3,7 +3,7 @@
 > Fonte única de verdade sobre escopo, decisões e progresso. Consultar antes de
 > cada tarefa; atualizar após mudanças relevantes. (skill: `concretiza-memoria`)
 
-_Última atualização: 2026-08-06 (header: nome usuário truncado)_
+_Última atualização: 2026-08-06 (header: só primeiro nome)_
 
 ## Objetivo e problema
 Sistema web para controlar a **fila de produção** e o **pipeline operacional**
@@ -218,3 +218,5 @@ Bloqueios respondem **por que parou** e **de quem depende**, independentes da fa
   em `process-tabs.tsx`.
 - 2026-08-06 — Header: bloco do usuário com largura fixa + fonte menor +
   `truncate`; nav (módulos+CONTA) em `flex-1 min-w-0` para não sobrepor CONFIG/CONTA.
+- 2026-08-06 — Header: exibe só o primeiro nome (primeiro token de
+  `session.user.name`); grupo/papel permanece abaixo; tooltip com nome completo.

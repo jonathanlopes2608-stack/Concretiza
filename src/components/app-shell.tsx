@@ -133,6 +133,11 @@ function ContaMenu({
   );
 }
 
+function primeiroNome(nomeCompleto: string) {
+  const token = nomeCompleto.trim().split(/\s+/)[0];
+  return token || "Usuário";
+}
+
 export function AppShell({
   userName,
   userRole,
@@ -141,6 +146,7 @@ export function AppShell({
   children,
 }: Props) {
   const pathname = usePathname();
+  const nomeExibicao = primeiroNome(userName);
 
   return (
     <div className="flex min-h-screen flex-col bg-neutral-100">
@@ -179,8 +185,8 @@ export function AppShell({
 
         <div className="flex w-[13.5rem] shrink-0 items-center gap-2 border-l border-white/10 px-3 py-3 sm:w-[15rem] sm:gap-3 sm:px-4">
           <div className="hidden min-w-0 flex-1 text-right sm:block">
-            <p className="truncate text-[13px] font-medium leading-tight sm:text-[14px]" title={userName || "Usuário"}>
-              {userName || "Usuário"}
+            <p className="truncate text-[13px] font-medium leading-tight sm:text-[14px]" title={userName || nomeExibicao}>
+              {nomeExibicao}
             </p>
             <p className="truncate text-[11px] leading-tight text-white/65 sm:text-[12px]">
               {labelGrupo(userRole)}
