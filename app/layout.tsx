@@ -1,6 +1,7 @@
+import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { branding } from "@/src/config/branding";
+import { brandingCssVars, getBranding } from "@/src/config/branding";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -13,9 +14,13 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const brand = getBranding();
+
 export const metadata: Metadata = {
-  title: `${branding.name} — Conformidade`,
-  description: "Fila de produção de conformidade de financiamento imobiliário",
+  title: `${brand.name} — Conformidade`,
+  description:
+    brand.slogan ||
+    "Fila de produção de conformidade de financiamento imobiliário",
 };
 
 export default function RootLayout({
@@ -23,10 +28,12 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cssVars = brandingCssVars(brand) as CSSProperties;
   return (
     <html
       lang="pt-BR"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      style={cssVars}
     >
       <body className="min-h-full">{children}</body>
     </html>

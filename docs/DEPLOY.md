@@ -215,12 +215,43 @@ No serviço da **app** → **Variables**, configure **todas** abaixo. Exemplos s
 | `GOOGLE_REDIRECT_URI` | *(deixe vazio)* | Não | Idem |
 | `TOKEN_ENCRYPTION_KEY` | mesmo valor de `AUTH_SECRET` ou outra chave longa | Recomendado | Pode repetir `AUTH_SECRET` por enquanto |
 | `TZ_AGENDA` | `America/Sao_Paulo` | Sim | Fuso dos compromissos |
+| `BRAND_NAME` | `Concretiza` | Não | White-label; ver [White-label / correspondente](#white-label--correspondente) |
+| `BRAND_LOGO` | `/branding/concretiza-logo.png` | Não | Caminho público da logo |
+| `BRAND_SLOGAN` | `Financiamentos` | Não | Texto sob o nome |
 
 **Variáveis que o Railway injeta sozinho (não precisa criar):**
 
 - `PORT` — porta interna; o `Dockerfile` já usa `HOSTNAME=0.0.0.0`.
 
 Após salvar todas, faça **Redeploy** se o serviço não redeployar automaticamente.
+
+---
+
+## White-label / correspondente
+
+**Modelo:** cada correspondente tem **sua própria instalação/deploy** (Railway ou VPS).
+Não há multi-tenant no mesmo banco — só personalização de marca por ambiente.
+
+### Como trocar a marca numa instalação
+
+1. **Variáveis de ambiente** (preferido no Railway — reinicia o serviço sem editar código):
+
+| Variável | Uso |
+|----------|-----|
+| `BRAND_NAME` | Nome exibido (sidebar, login, título da aba) |
+| `BRAND_SHORT_NAME` | Nome curto (opcional) |
+| `BRAND_SLOGAN` | Slogan sob o nome |
+| `BRAND_LOGO` | Path em `public/` (ex.: `/branding/minha-logo.png`) |
+| `BRAND_RAZAO_SOCIAL` | Razão social (shell / PDF futuro) |
+| `BRAND_CNPJ` | CNPJ |
+| `BRAND_TELEFONE` | Telefone de contato |
+| `BRAND_SITE` | Site |
+| `BRAND_COLOR_900` / `_700` / `_500` | Cores da marca (hex) |
+
+2. Coloque o arquivo da logo em `public/branding/` (ou volume) e aponte `BRAND_LOGO`.
+3. **Alternativa:** edite os defaults em [`src/config/branding.ts`](../src/config/branding.ts) e faça redeploy.
+
+O layout do app lê `getBranding()` no servidor e injeta CSS variables (`--brand-900` etc.) + props no shell/login.
 
 ---
 
@@ -536,4 +567,5 @@ Coloque **Caddy** ou **Nginx** na frente do container (`APP_PORT` padrão 3047 n
 - [`docker-compose.yml`](../docker-compose.yml) — local / desenvolvimento
 - [`docker-compose.prod.yml`](../docker-compose.prod.yml) — VPS
 - [`.env.example`](../.env.example) — variáveis local e produção
+- [`src/config/branding.ts`](../src/config/branding.ts) — white-label por instalação
 - `npm run db:seed` / `npm run db:seed-demo` — bootstrap de dados (local)

@@ -5,6 +5,7 @@ import { BloqueiosPanel } from "@/src/components/bloqueios-panel";
 import { ChecklistPanel } from "@/src/components/checklist-panel";
 import { LinhaDoTempoTrigger } from "@/src/components/linha-do-tempo";
 import { PipelinePanel } from "@/src/components/pipeline-panel";
+import { RegisterProcessTab } from "@/src/components/register-process-tab";
 import { FaseBadge } from "@/src/components/status-badge";
 import { auth } from "@/src/lib/auth";
 import { FASE_LABELS } from "@/src/lib/fases";
@@ -65,8 +66,14 @@ export default async function PropostaDetalhePage({ params }: Props) {
   const atualizadoEmLabel = formatAtualizadoEm(ultimoEvento);
   const cadastro = parseCadastroCliente(proposta.cadastroCliente);
 
+  const tabTitle =
+    proposta.compradorNome
+      ? `${titulo} · ${proposta.compradorNome.split(" ")[0]}`
+      : titulo;
+
   return (
     <div className="space-y-6">
+      <RegisterProcessTab id={proposta.id} title={tabTitle} />
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-sm text-neutral-600">Processo</p>

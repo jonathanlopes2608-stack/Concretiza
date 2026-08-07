@@ -3,7 +3,7 @@
 > Fonte única de verdade sobre escopo, decisões e progresso. Consultar antes de
 > cada tarefa; atualizar após mudanças relevantes. (skill: `concretiza-memoria`)
 
-_Última atualização: 2026-08-06 (formulário cadastro cliente + PDF)_
+_Última atualização: 2026-08-06 (nav horizontal ~20% menor)_
 
 ## Objetivo e problema
 Sistema web para controlar a **fila de produção** e o **pipeline operacional**
@@ -32,6 +32,9 @@ sistema Caixa**. MVP ampliado para a **Concretiza**.
   Gmail pessoal no MVP), sync bidirecional, compartilhamento de visibilidade
   só no Concretiza.
 - Login + papéis (RBAC) + **2FA TOTP**.
+- **Shell UI**: branding white-label por instalação; **teste** de nav horizontal
+  (barra superior módulos) no lugar da sidebar; abas só no detalhe de processo;
+  última rota/filtros por módulo em `sessionStorage`.
 
 ### Fases do processo
 `ENTRADA → ANALISE → (RESTRICAO) → ENGENHARIA → (DEBITO_FGTS) → CONFORMIDADE → DECISAO → EM_CARTORIO / FORMALIZACAO → FINALIZADO`
@@ -42,8 +45,9 @@ Bloqueios respondem **por que parou** e **de quem depende**, independentes da fa
 ## Fora de escopo (perguntar antes de implementar)
 - Contas Google Workspace corporativas / agendas compartilhadas da empresa
   (hoje cada usuário conecta a própria conta Gmail).
-- Multi-tenant (várias empresas na mesma instância) — hoje só Concretiza, com
-  **branding parametrizável**.
+- **Multi-tenant no mesmo banco** (várias empresas na mesma instância).
+  Modelo escolhido: **opção B** — cada correspondente = **instalação/deploy
+  próprio**, com branding (logo + dados da marca) via config/env.
 - Assinatura digital.
 - Integração direta com sistemas da Caixa (SIOPI / Isolve / Caixa Aqui).
 - Login para despachante/cliente (dependências são externas no MVP).
@@ -59,7 +63,16 @@ Bloqueios respondem **por que parou** e **de quem depende**, independentes da fa
 - **Deploy**: **Railway** para validação externa do MVP (HTTPS sem domínio);
   destino pós-MVP = **VPS** com Docker (`docker-compose.prod.yml`). Guia:
   `docs/DEPLOY.md`.
-- **Branding**: parametrizável via `src/config/branding.ts` + CSS variables.
+- **Branding**: white-label por instalação — `src/config/branding.ts` +
+  `getBranding()` (env `BRAND_*`) + CSS variables no root layout.
+  Campos: nome, shortName, logo, slogan, cores, dados do correspondente
+  (razão social, CNPJ, telefone, site).
+- **Abas**: aba fixa **Fila** (primeira, sem X, `/fila`) + abas de processo
+  `/propostas/[id]` em `localStorage` (`process-tabs-store` + `ProcessTabs`).
+  Tabstrip só em `/fila` e `/propostas/...`; oculta em Dashboard/Agenda/etc.
+  (abas persistem e reaparecem ao voltar à Fila).
+- **Nav (teste UX)**: barra superior horizontal (`ModuleNav`) no lugar da sidebar;
+  última rota por módulo + query da fila em `sessionStorage` (`nav-module-store`).
 - Pipeline: `src/modules/pipeline`, bloqueios: `src/modules/bloqueios`, dashboard: `src/modules/dashboard`, agenda: `src/modules/agenda`.
 
 ## Progresso
@@ -82,6 +95,8 @@ Bloqueios respondem **por que parou** e **de quem depende**, independentes da fa
 - [x] **Formulário cadastro de clientes (Caixa)**: campos do PDF em `Proposta.cadastroCliente`
   (JSON) + seções no form; export `GET /api/propostas/[id]/formulario.pdf` (pdf-lib);
   template de referência em `docs/templates/` e `public/templates/`.
+- [x] **UI shell**: branding expandido + logo no header; **teste** nav horizontal
+  (ícone+label CAPS, ativo invertido); abas de processos; persistência de rota/filtros.
 - [ ] Importação direta da planilha CONTROLE ORÇA (opcional).
 - [ ] Deploy efetivo no Railway + contas dos validadores (operacional).
 
@@ -114,6 +129,7 @@ Bloqueios respondem **por que parou** e **de quem depende**, independentes da fa
 2. Webhook Google Push em produção (HTTPS) + registro de channel (quando ligar agenda).
 3. Import opcional da planilha de controle ORÇA/engenharia.
 4. Gates mais finos por fase e papéis de visualização EN QA.
+5. Usar campos do correspondente no PDF do formulário (quando necessário).
 
 ## Log de decisões
 - 2026-07-24 — Agenda é módulo interno (sem integração externa).
@@ -181,3 +197,22 @@ Bloqueios respondem **por que parou** e **de quem depende**, independentes da fa
   `cadastroCliente` + UI em seções; PDF gerado com pdf-lib (layout recriado —
   PDF original não era fillable e já vinha preenchido); data de geração em
   America/Sao_Paulo; botão no detalhe/edição.
+- 2026-08-06 — Multi-correspondente = **opção B** (deploy por correspondente),
+  não multi-tenant no mesmo DB. Branding via `BRAND_*` / `branding.ts`.
+- 2026-08-06 — Abas = **opção A**: só detalhe de processo; fila/dashboard
+  navegação normal. Sidebar recolhível + logo ~2x com nome abaixo.
+- 2026-08-06 — Aba fixa **Fila** como primeira no tabstrip (sempre aberta, sem X).
+- 2026-08-06 — Nome/grupo/Sair só no header (canto superior direito); removido
+  do rodapé da sidebar.
+- 2026-08-06 — Teste de usabilidade: nav horizontal (brand.900, ícone+CAPS,
+  ativo branco) no lugar da sidebar; `sessionStorage` guarda última rota por
+  módulo e query da fila ao trocar de menu.
+- 2026-08-06 — Tabstrip (Fila + processos) só em `/fila` e `/propostas/...`;
+  oculta em Dashboard/Agenda/Usuários/Config/Conta; abas persistem em localStorage.
+- 2026-08-06 — Header/nav superior ~2× (logo, ícones, labels, usuário/Sair,
+  paddings) em `app-shell` / `module-nav` / ícones; scroll horizontal no mobile.
+- 2026-08-06 — Itens do menu horizontal (FILA…CONTA) ~20% menores (padding,
+  ícones 35px, labels 14/16px, min-width) para caber sem scroll no desktop;
+  `overflow-x-auto` só abaixo de `md`.
+- 2026-08-06 — Tabstrip da Fila ~1.5× (padding, tipografia 18px, ícone X 15px)
+  em `process-tabs.tsx`.

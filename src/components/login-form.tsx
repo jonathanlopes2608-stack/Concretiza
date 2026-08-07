@@ -3,10 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { branding } from "@/src/config/branding";
+import type { Branding } from "@/src/config/branding";
 import { loginAction } from "@/src/modules/auth/actions";
 
-export function LoginForm() {
+type Props = {
+  branding: Branding;
+};
+
+export function LoginForm({ branding }: Props) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -43,7 +47,18 @@ export function LoginForm() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-brand-900 via-brand-700 to-brand-500 px-4">
       <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-xl">
         <div className="mb-6 flex flex-col items-center text-center">
-          <Image src={branding.logo} alt={branding.name} width={120} height={80} priority />
+          <Image
+            src={branding.logo}
+            alt={branding.name}
+            width={160}
+            height={160}
+            className="h-28 w-28 object-contain"
+            priority
+          />
+          <p className="mt-3 text-lg font-semibold text-brand-900">{branding.name}</p>
+          {branding.slogan ? (
+            <p className="text-sm text-neutral-600">{branding.slogan}</p>
+          ) : null}
           <h1 className="mt-4 text-xl font-semibold text-brand-900">Acessar o sistema</h1>
           <p className="mt-1 text-sm text-neutral-600">Fila de conformidade</p>
         </div>
